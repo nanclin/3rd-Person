@@ -1,0 +1,17 @@
+﻿<Properties StartupConfiguration="{37069A56-5280-E0E0-F102-31080EF59C9D}|">
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/CharController.cs">
+    <Files>
+      <File FileName="Assets/Scripts/CharController.cs" Line="85" Column="36" />
+      <File FileName="Assets/Scripts/CameraController.cs" Line="7" Column="59" />
+      <File FileName="Assets/FloorCulling.cs" Line="24" Column="35" />
+      <File FileName="Assets/Bezier.cs" Line="74" Column="39" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+</Properties>
