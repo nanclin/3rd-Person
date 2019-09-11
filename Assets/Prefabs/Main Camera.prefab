@@ -102,5 +102,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CameraTarget: {fileID: 0}
   CameraDistance: 10
-  CameraSpeed: {x: -1.5, y: 1}
+  CameraSpeed: {x: 1.5, y: 1}
   MinMaxAngle: {x: 10, y: 70}
+  MouseSensitivity: 5

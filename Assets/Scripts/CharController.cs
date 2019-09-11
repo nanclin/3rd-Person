@@ -91,7 +91,7 @@ public class CharController : MonoBehaviour {
 #endif
 
         // crouch
-        bool crouchButton = Input.GetKey("joystick button 4") || Input.GetKey("joystick button 5");
+        bool crouchButton = Input.GetKey("joystick button 4") || Input.GetKey("joystick button 5") || Input.GetKey("left shift");
         Vector3 targetCrouchScale = transform.localScale;
         if (crouchButton){
             targetCrouchScale = CrouchScale;
