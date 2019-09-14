@@ -6,7 +6,7 @@ public class Bezier : MonoBehaviour {
 
     [SerializeField] private bool ShowGizmos = true;
     [SerializeField] private Transform RefPoint = null;
-    [SerializeField] private List<Transform> Points = null;
+    [SerializeField] private List<Transform> Points = new List<Transform>();
     [SerializeField] [Range(3, 20)] private int SampleCount = 5;
 
     [SerializeField] private List<Vector3> SamplePoints = new List<Vector3>();
