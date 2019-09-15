@@ -22,11 +22,6 @@ public class CharController : MonoBehaviour {
     [Header("ATTRACTOR")]
     [SerializeField] private List<LineAttractor> LineAttractorsList;
     [SerializeField] private bool UseAttractor = true;
-    //[SerializeField] private Transform P0 = null;
-    //[SerializeField] private Transform P1 = null;
-    //[SerializeField] private AnimationCurve AttractorCurve;
-    //[SerializeField] [Range(0, 5)] private float AttractorRange = 2;
-    //[SerializeField] [Range(0, 1)] private float AttractorPower = .5f;
 
     private List<Vector3> PositionHistory = new List<Vector3>();
     private List<Vector3> MoveVectorHistory = new List<Vector3>();
@@ -56,6 +51,8 @@ public class CharController : MonoBehaviour {
 
         // move dir
         Vector3 moveDir = InputDirRelToCamera;
+
+        // apply attractor force
         if (UseAttractor) {
             float closestDist = Mathf.Infinity;
             Vector3 closestDir = moveDir;
@@ -207,6 +204,12 @@ public class CharController : MonoBehaviour {
                 LineAttractorData data = closestAttractor.Data;
                 Vector3 p0 = closestAttractor.P0.position;
                 Vector3 p1 = closestAttractor.P1.position;
+
+                // closest point and line
+                Gizmos.color = Color.red;
+                Vector3 cp = Utils.ClosestPointOnLine(transform.position, p0, p1);
+                Gizmos.DrawSphere(cp, .2f);
+                Gizmos.DrawLine(transform.position, cp);
 
                 // temp values
                 Vector3 inputDir = InputDirRelToCamera;
