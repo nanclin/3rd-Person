@@ -20,12 +20,13 @@ public class CharController : MonoBehaviour {
     [SerializeField] private int HistoryCount = 10;
 
     [Header("ATTRACTOR")]
+    [SerializeField] private List<LineAttractor> LineAttractorsList;
     [SerializeField] private bool UseAttractor = true;
-    [SerializeField] private Transform P0 = null;
-    [SerializeField] private Transform P1 = null;
-    [SerializeField] private AnimationCurve AttractorCurve;
-    [SerializeField] [Range(0, 5)] private float AttractorRange = 2;
-    [SerializeField] [Range(0, 1)] private float AttractorPower = .5f;
+    //[SerializeField] private Transform P0 = null;
+    //[SerializeField] private Transform P1 = null;
+    //[SerializeField] private AnimationCurve AttractorCurve;
+    //[SerializeField] [Range(0, 5)] private float AttractorRange = 2;
+    //[SerializeField] [Range(0, 1)] private float AttractorPower = .5f;
 
     private List<Vector3> PositionHistory = new List<Vector3>();
     private List<Vector3> MoveVectorHistory = new List<Vector3>();
@@ -55,8 +56,18 @@ public class CharController : MonoBehaviour {
 
         // move dir
         Vector3 moveDir = InputDirRelToCamera;
-        if (UseAttractor)
-            moveDir = AttractorDir(InputDirRelToCamera, P0.position, P1.position, AttractorRange, AttractorCurve);
+        if (UseAttractor) {
+            float closestDist = Mathf.Infinity;
+            Vector3 closestDir = moveDir;
+            foreach (var attractor in LineAttractorsList) {
+                Vector4 attractorDir = AttractorDir(InputDirRelToCamera, attractor);
+                if (attractorDir.w < closestDist) {
+                    closestDist = attractorDir.w;
+                    closestDir = attractorDir;
+                }
+            }
+            moveDir = closestDir;
+        }
 
         // rotate
         if (Input != Vector3.zero) {
@@ -147,18 +158,22 @@ public class CharController : MonoBehaviour {
         body.velocity = pushDir * PushPower;
     }
 
-    private Vector3 AttractorDir(Vector3 dir, Vector3 p0, Vector3 p1, float distance, AnimationCurve curve = null) {
+    private Vector4 AttractorDir(Vector3 dir, LineAttractor attractor) {
+        LineAttractorData data = attractor.Data;
+        Vector3 p0 = attractor.P0.position;
+        Vector3 p1 = attractor.P1.position;
         Vector3 cp = Utils.ClosestPointOnLine(transform.position, p0, p1);
         Vector3 lineDir = (p1 - p0).normalized;
         int lineAlignment = Vector3.Dot(lineDir, dir) > 0 ? 1 : -1;
         if (dir == Vector3.zero)
             lineAlignment = 0;
         Vector3 attractorDir = lineDir * lineAlignment;
-        float d01 = Mathf.Clamp01(Mathf.InverseLerp(distance, 0, (transform.position - cp).magnitude)); // closer to the line, higher the value
-        if (curve != null)
-            d01 = curve.Evaluate(d01);
-        Vector3 lerpDir = Vector3.Lerp(dir, attractorDir, d01 * AttractorPower);
-        return lerpDir;
+        float d = (transform.position - cp).magnitude;
+        float d01 = Mathf.Clamp01(Mathf.InverseLerp(data.Range, 0, d)); // closer to the line, higher the value
+        if (data.Curve != null)
+            d01 = data.Curve.Evaluate(d01);
+        Vector3 lerpDir = Vector3.Lerp(dir, attractorDir, d01 * data.Power);
+        return new Vector4(lerpDir.x, lerpDir.y, lerpDir.z, d);
     }
 
 #if DEBUG
@@ -175,34 +190,42 @@ public class CharController : MonoBehaviour {
 
         // line attractor gizmos
         if (UseAttractor) {
-            Vector3 cp = Utils.ClosestPointOnLine(transform.position, P0.position, P1.position);
 
-            // gizmos attractor
-            Gizmos.color = Color.black;
-            Gizmos.DrawSphere(P0.position, .2f);
-            Gizmos.DrawSphere(P1.position, .2f);
-            Gizmos.DrawLine(P0.position, P1.position);
-            Gizmos.DrawSphere(cp, .2f);
-            Gizmos.DrawLine(transform.position, cp);
-            Utils.GizmosDrawLineRange(P0.position, P1.position, AttractorRange);
+            // get closest attractor
+            LineAttractor closestAttractor = null;
+            float closestDist = Mathf.Infinity;
+            foreach (LineAttractor attractor in LineAttractorsList) {
+                Vector4 attractorDir = AttractorDir(InputDirRelToCamera, attractor);
+                if (attractorDir.w < closestDist) {
+                    closestDist = attractorDir.w;
+                    closestAttractor = attractor;
+                }
+            }
 
-            // temp values
-            Vector3 inputDir = InputDirRelToCamera;
-            Vector3 lineDir = (P1.position - P0.position).normalized;
-            Vector3 attractedDir = (lineDir + inputDir).normalized;
-            Vector3 lerpDir = AttractorDir(inputDir, P0.position, P1.position, AttractorRange, AttractorCurve);
+            // draw closest attractor dirs
+            if (closestAttractor != null) {
+                LineAttractorData data = closestAttractor.Data;
+                Vector3 p0 = closestAttractor.P0.position;
+                Vector3 p1 = closestAttractor.P1.position;
 
-            // gizmos dirs
-            Gizmos.color = Color.white;
-            Gizmos.DrawRay(transform.position, inputDir * 2);
-            Gizmos.color = Color.blue;
-            Gizmos.DrawRay(transform.position, InputDirRelToCamera * 2);
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(transform.position, lineDir * 2);
-            Gizmos.color = Color.green * .75f;
-            Gizmos.DrawRay(transform.position, attractedDir);
-            Gizmos.color = Color.green;
-            Gizmos.DrawRay(transform.position, lerpDir);
+                // temp values
+                Vector3 inputDir = InputDirRelToCamera;
+                Vector3 lineDir = (p1 - p0).normalized;
+                Vector3 attractedDir = (lineDir + inputDir).normalized;
+                Vector3 lerpDir = AttractorDir(inputDir, closestAttractor);
+
+                // gizmos dirs
+                Gizmos.color = Color.white;
+                Gizmos.DrawRay(transform.position, inputDir * 2);
+                Gizmos.color = Color.blue;
+                Gizmos.DrawRay(transform.position, InputDirRelToCamera * 2);
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawRay(transform.position, lineDir * 2);
+                Gizmos.color = Color.green * .75f;
+                Gizmos.DrawRay(transform.position, attractedDir * 1.8f);
+                Gizmos.color = Color.green;
+                Gizmos.DrawRay(transform.position, lerpDir * 1.8f);
+            }
         }
     }
 #endif

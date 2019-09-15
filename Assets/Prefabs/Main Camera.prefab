@@ -99,8 +99,8 @@ MonoBehaviour:
   Camera: {fileID: 20550486057148866}
   CharTransform: {fileID: 0}
   CameraTarget: {fileID: 0}
-  CameraSpeed: {x: 0.3, y: 0.1}
-  MouseSensitivity: 10
+  CameraSpeed: {x: 3, y: 1}
+  MouseSensitivity: 1
   Rails:
   - {fileID: 0}
   UseRails: 1
