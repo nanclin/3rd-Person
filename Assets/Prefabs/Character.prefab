@@ -12,7 +12,7 @@ GameObject:
   m_Layer: 9
   m_Name: CameraTarget
   m_TagString: Untagged
-  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 33310427699975844}
   - component: {fileID: 23008514509847314}
   m_Layer: 9
-  m_Name: Cube (3)
+  m_Name: nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,7 +87,7 @@ MeshRenderer:
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9656979af1a83447991fc3ad398bb344, type: 2}
+  - {fileID: 2100000, guid: 1eee09130d7a64539bd9a6b7949b2d9b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -118,8 +118,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4188418326882224}
   - component: {fileID: 136123617770578246}
-  - component: {fileID: 114447165946203832}
   - component: {fileID: 143379152652014200}
+  - component: {fileID: 114447165946203832}
   m_Layer: 9
   m_Name: Character
   m_TagString: Untagged
@@ -158,34 +158,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &114447165946203832
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1775790287667460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a1a1db5d176741c88356e02c1cca40e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Camera: {fileID: 0}
-  CharacterController: {fileID: 143379152652014200}
-  WalkSpeed: 5
-  CrouchSpeed: 2
-  SpeedSmoothTime: 0.2
-  TurnSmoothTime: 0.1
-  PushPower: 1
-  CrouchScale: {x: 1.2, y: 0.6, z: 1.2}
-  CrouchSmoothTime: 0.1
-  AnimationCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  HistoryCount: 10
 --- !u!143 &143379152652014200
 CharacterController:
   m_ObjectHideFlags: 0
@@ -204,6 +176,64 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &114447165946203832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1775790287667460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a1a1db5d176741c88356e02c1cca40e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LevelStart: {fileID: 0}
+  Camera: {fileID: 0}
+  CharacterController: {fileID: 143379152652014200}
+  WalkSpeed: 5
+  CrouchSpeed: 2
+  SpeedSmoothTime: 0.2
+  TurnSmoothTime: 0.1
+  PushPower: 1
+  CrouchScale: {x: 1.2, y: 0.6, z: 1.2}
+  CrouchSmoothTime: 0.1
+  AnimationCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  HistoryCount: 10
+  UseAttractor: 1
+  P0: {fileID: 0}
+  P1: {fileID: 0}
+  AttractorCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  AttractorRange: 0.5
+  AttractorPower: 0.5
 --- !u!1 &1956612216941872
 GameObject:
   m_ObjectHideFlags: 0

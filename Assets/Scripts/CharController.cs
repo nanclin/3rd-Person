@@ -5,6 +5,7 @@ using UnityEngine;
 public class CharController : MonoBehaviour {
 
     [Header("REFs")]
+    [SerializeField] private Transform LevelStart;
     [SerializeField] private Camera Camera = null;
     [SerializeField] private CharacterController CharacterController = null;
     [Header("SETTINGS")]
@@ -13,11 +14,18 @@ public class CharController : MonoBehaviour {
     [SerializeField] private float SpeedSmoothTime = .2f;
     [SerializeField] private float TurnSmoothTime = .1f;
     [SerializeField] private float PushPower = 1.0f;
-    [SerializeField] private Vector3 CrouchScale = new Vector3(1.2f,0.6f,1.2f);
+    [SerializeField] private Vector3 CrouchScale = new Vector3(1.2f, 0.6f, 1.2f);
     [SerializeField] private float CrouchSmoothTime = .3f;
-    [SerializeField] private AnimationCurve AnimationCurve;
     [Header("DEBUG")]
     [SerializeField] private int HistoryCount = 10;
+
+    [Header("ATTRACTOR")]
+    [SerializeField] private bool UseAttractor = true;
+    [SerializeField] private Transform P0 = null;
+    [SerializeField] private Transform P1 = null;
+    [SerializeField] private AnimationCurve AttractorCurve;
+    [SerializeField] [Range(0, 5)] private float AttractorRange = 2;
+    [SerializeField] [Range(0, 1)] private float AttractorPower = .5f;
 
     private List<Vector3> PositionHistory = new List<Vector3>();
     private List<Vector3> MoveVectorHistory = new List<Vector3>();
@@ -28,52 +36,50 @@ public class CharController : MonoBehaviour {
     private float CurrentRotation;
     private float TurnSmoothVelocity;
 
-    private Vector3 PrevDir;
-    private Vector3 InputDir;
+    private Vector3 Input;
+    private Vector3 InputDirRelToCamera;
 
     private bool Crouching;
     private Vector3 CrouchSmoothVeolocity;
 
-    private Vector4 ClosestPoint;
 
-    #if DEBUG
+#if DEBUG
     private Vector3 DEBUG_WalkDir = Vector3.zero;
     private Vector3 DEBUG_LastWalkDir = Vector3.zero;
 #endif
 
-	void FixedUpdate()
-    {
+    void FixedUpdate() {
+        // input
+        Input = new Vector3(UnityEngine.Input.GetAxis("Horizontal"), 0, UnityEngine.Input.GetAxis("Vertical"));
+        InputDirRelToCamera = (Utils.RotateY(Camera.transform.eulerAngles.y * Mathf.Deg2Rad) * Input).normalized;
 
-        #region Movement
-
-        Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        Vector3 dirRelToCamera = (RotateY(Camera.transform.eulerAngles.y * Mathf.Deg2Rad) * input).normalized;
+        // move dir
+        Vector3 moveDir = InputDirRelToCamera;
+        if (UseAttractor)
+            moveDir = AttractorDir(InputDirRelToCamera, P0.position, P1.position, AttractorRange, AttractorCurve);
 
         // rotate
-        if (input != Vector3.zero) {
-            float targetRotation = Mathf.Atan2(dirRelToCamera.x, dirRelToCamera.z) * Mathf.Rad2Deg;
+        if (Input != Vector3.zero) {
+            float targetRotation = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
             CurrentRotation = Mathf.SmoothDampAngle(CurrentRotation, targetRotation, ref TurnSmoothVelocity, TurnSmoothTime);
             transform.eulerAngles = Vector3.up * CurrentRotation;
         }
 
 
         // move
-        float targetSpeed = (Crouching ? CrouchSpeed : WalkSpeed) * input.magnitude;
+        float targetSpeed = (Crouching ? CrouchSpeed : WalkSpeed) * Input.magnitude;
         CurrentSpeed = Mathf.SmoothDamp(CurrentSpeed, targetSpeed, ref SpeedSmoothVelocity, SpeedSmoothTime);
-        CharacterController.SimpleMove(dirRelToCamera * CurrentSpeed * Time.deltaTime * 60);
+        CharacterController.SimpleMove(moveDir * CurrentSpeed * Time.deltaTime * 60);
 
 #if DEBUG
-        DEBUG_LastWalkDir = DEBUG_WalkDir.magnitude >.1f ? DEBUG_WalkDir : DEBUG_LastWalkDir;
-        DEBUG_WalkDir = dirRelToCamera;
+        DEBUG_LastWalkDir = DEBUG_WalkDir.magnitude > .1f ? DEBUG_WalkDir : DEBUG_LastWalkDir;
+        DEBUG_WalkDir = moveDir;
 #endif
         // reset pos on fall
-        if (transform.position.y < -1)
-        {
-            transform.position = Vector3.zero;
+        if (transform.position.y < -2) {
+            transform.position = LevelStart.position;
             CurrentSpeed = 0;
         }
-
-        #endregion
 
         int layerMask = ~(1 << LayerMask.NameToLayer("Character"));
         RaycastHit hit;
@@ -91,20 +97,19 @@ public class CharController : MonoBehaviour {
 #endif
 
         // crouch
-        bool crouchButton = Input.GetKey("joystick button 4") || Input.GetKey("joystick button 5") || Input.GetKey("left shift");
+        bool crouchButton = UnityEngine.Input.GetKey("joystick button 4") || UnityEngine.Input.GetKey("joystick button 5") || UnityEngine.Input.GetKey("left shift");
         Vector3 targetCrouchScale = transform.localScale;
-        if (crouchButton){
+        if (crouchButton) {
             targetCrouchScale = CrouchScale;
             Crouching = true;
-        } else if (!crouchButton && hasStandingRoom){
+        }
+        else if (!crouchButton && hasStandingRoom) {
             targetCrouchScale = Vector3.one;
             Crouching = false;
         }
         transform.localScale = Vector3.SmoothDamp(transform.localScale, targetCrouchScale, ref CrouchSmoothVeolocity, CrouchSmoothTime);
 
-        // align
-
-#if UNITY_EDITOR
+#if DEBUG && UNITY_EDITOR
         // store debug data
         PositionHistory.Add(transform.position);
         if (PositionHistory.Count > HistoryCount)
@@ -118,19 +123,16 @@ public class CharController : MonoBehaviour {
     }
 
     // this script pushes all rigidbodies that the character touches
-    void OnControllerColliderHit(ControllerColliderHit hit)
-    {
+    void OnControllerColliderHit(ControllerColliderHit hit) {
         Rigidbody body = hit.collider.attachedRigidbody;
 
         // no rigidbody
-        if (body == null || body.isKinematic)
-        {
+        if (body == null || body.isKinematic) {
             return;
         }
 
         // We dont want to push objects below us
-        if (hit.moveDirection.y < -0.3)
-        {
+        if (hit.moveDirection.y < -0.3) {
             return;
         }
 
@@ -145,23 +147,63 @@ public class CharController : MonoBehaviour {
         body.velocity = pushDir * PushPower;
     }
 
-	private void OnDrawGizmos()
-	{
-        for (int i = 0; i < MoveVectorHistory.Count; i++)
-        {
+    private Vector3 AttractorDir(Vector3 dir, Vector3 p0, Vector3 p1, float distance, AnimationCurve curve = null) {
+        Vector3 cp = Utils.ClosestPointOnLine(transform.position, p0, p1);
+        Vector3 lineDir = (p1 - p0).normalized;
+        int lineAlignment = Vector3.Dot(lineDir, dir) > 0 ? 1 : -1;
+        if (dir == Vector3.zero)
+            lineAlignment = 0;
+        Vector3 attractorDir = lineDir * lineAlignment;
+        float d01 = Mathf.Clamp01(Mathf.InverseLerp(distance, 0, (transform.position - cp).magnitude)); // closer to the line, higher the value
+        if (curve != null)
+            d01 = curve.Evaluate(d01);
+        Vector3 lerpDir = Vector3.Lerp(dir, attractorDir, d01 * AttractorPower);
+        return lerpDir;
+    }
+
+#if DEBUG
+    private void OnDrawGizmos() {
+
+        // positions history
+        for (int i = 0; i < MoveVectorHistory.Count; i++) {
             Color color = Color.white;
             color.a = Mathf.Lerp(0.1f, 1, (float)i / (float)MoveVectorHistory.Count);
             Gizmos.color = color;
             Gizmos.DrawSphere(PositionHistory[i], .05f);
             //Gizmos.DrawRay(PositionHistory[i], MoveVectorHistory[i]);
         }
-    }
 
-    public static Matrix4x4 RotateY(float rad) {
-        Matrix4x4 m = Matrix4x4.identity;
-        m.m00 = m.m22 = Mathf.Cos(rad);
-        m.m02 = Mathf.Sin(rad);
-        m.m20 = -m.m02;
-        return m;
+        // line attractor gizmos
+        if (UseAttractor) {
+            Vector3 cp = Utils.ClosestPointOnLine(transform.position, P0.position, P1.position);
+
+            // gizmos attractor
+            Gizmos.color = Color.black;
+            Gizmos.DrawSphere(P0.position, .2f);
+            Gizmos.DrawSphere(P1.position, .2f);
+            Gizmos.DrawLine(P0.position, P1.position);
+            Gizmos.DrawSphere(cp, .2f);
+            Gizmos.DrawLine(transform.position, cp);
+            Utils.GizmosDrawLineRange(P0.position, P1.position, AttractorRange);
+
+            // temp values
+            Vector3 inputDir = InputDirRelToCamera;
+            Vector3 lineDir = (P1.position - P0.position).normalized;
+            Vector3 attractedDir = (lineDir + inputDir).normalized;
+            Vector3 lerpDir = AttractorDir(inputDir, P0.position, P1.position, AttractorRange, AttractorCurve);
+
+            // gizmos dirs
+            Gizmos.color = Color.white;
+            Gizmos.DrawRay(transform.position, inputDir * 2);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(transform.position, InputDirRelToCamera * 2);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawRay(transform.position, lineDir * 2);
+            Gizmos.color = Color.green * .75f;
+            Gizmos.DrawRay(transform.position, attractedDir);
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(transform.position, lerpDir);
+        }
     }
+#endif
 }
