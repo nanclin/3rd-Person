@@ -44,6 +44,12 @@ public class CharController : MonoBehaviour {
     private Vector3 DEBUG_LastWalkDir = Vector3.zero;
 #endif
 
+    void Start() {
+        LineAttractor[] attractors = FindObjectsOfType<LineAttractor>();
+        LineAttractorsList.Clear();
+        LineAttractorsList.AddRange(attractors);
+    }
+
     void FixedUpdate() {
         // input
         Input = new Vector3(UnityEngine.Input.GetAxis("Horizontal"), 0, UnityEngine.Input.GetAxis("Vertical"));
