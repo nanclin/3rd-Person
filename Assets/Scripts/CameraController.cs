@@ -11,7 +11,7 @@ public class CameraController : MonoBehaviour {
     [SerializeField] private Vector2 CameraSpeed = new Vector2(.3f, .1f);
     [SerializeField] private float MouseSensitivity = 10;
     [Header("Rails")]
-    [SerializeField] private List<Bezier> Rails;
+    [SerializeField] private List<Bezier> Rails = new List<Bezier>();
     [SerializeField] private bool UseRails = false;
     [SerializeField] private bool RailOrTunnel = true;
     [SerializeField] private AnimationCurve RailTransitionCurve;
@@ -136,7 +136,7 @@ public class CameraController : MonoBehaviour {
     }
 
     private void OnDrawGizmos() {
-        if (Application.isPlaying) {
+        if (Application.isPlaying && Rails.Count > 0) {
             Vector3 railSegmentDir = (ClosestPoint.SegmentP1 - ClosestPoint.SegmentP0).normalized;
             Gizmos.color = Color.cyan;
             Gizmos.DrawRay(TargetPos, railSegmentDir);
