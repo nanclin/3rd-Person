@@ -1189,11 +1189,6 @@ PrefabInstance:
       objectReference: {fileID: 867806119}
     - target: {fileID: 114447165946203832, guid: 537e1a6715a0b4c50afce83adb619229,
         type: 3}
-      propertyPath: UseAttractor
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114447165946203832, guid: 537e1a6715a0b4c50afce83adb619229,
-        type: 3}
       propertyPath: InteractablesList.Array.data[0]
       value: 
       objectReference: {fileID: 0}
