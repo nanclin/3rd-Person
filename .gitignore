@@ -42,3 +42,5 @@ Assembly-CSharp-Editor-Debug.json
 Assembly-CSharp-Debug.json
 db.lock
 storage.ide
+.vs/3rd Person/xs/sqlite3/storage.ide-shm
+.vs/3rd Person/xs/sqlite3/storage.ide-wal
