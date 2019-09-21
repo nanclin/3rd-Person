@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ public class CharController : MonoBehaviour {
     [SerializeField] private Transform LevelStart;
     [SerializeField] private Camera Camera = null;
     [SerializeField] private CharacterController CharacterController = null;
+
     [Header("SETTINGS")]
     [SerializeField] private float WalkSpeed = 5;
     [SerializeField] private float CrouchSpeed = 2;
@@ -16,12 +18,16 @@ public class CharController : MonoBehaviour {
     [SerializeField] private float PushPower = 1.0f;
     [SerializeField] private Vector3 CrouchScale = new Vector3(1.2f, 0.6f, 1.2f);
     [SerializeField] private float CrouchSmoothTime = .3f;
+
     [Header("DEBUG")]
     [SerializeField] private int HistoryCount = 10;
 
     [Header("ATTRACTOR")]
     [SerializeField] private List<LineAttractor> LineAttractorsList;
     [SerializeField] private bool UseAttractor = true;
+
+    public Action OnDeath;
+    public Action<Collider> OnCollectableHit;
 
     private List<Vector3> PositionHistory = new List<Vector3>();
     private List<Vector3> MoveVectorHistory = new List<Vector3>();
@@ -38,16 +44,20 @@ public class CharController : MonoBehaviour {
     private bool Crouching;
     private Vector3 CrouchSmoothVeolocity;
 
-
 #if DEBUG
     private Vector3 DEBUG_WalkDir = Vector3.zero;
     private Vector3 DEBUG_LastWalkDir = Vector3.zero;
 #endif
 
     void Start() {
+        // get all attractors on scene
         LineAttractor[] attractors = FindObjectsOfType<LineAttractor>();
         LineAttractorsList.Clear();
         LineAttractorsList.AddRange(attractors);
+
+        // init position
+        transform.position = LevelStart.position;
+        transform.rotation = Quaternion.identity;
     }
 
     void FixedUpdate() {
@@ -73,12 +83,16 @@ public class CharController : MonoBehaviour {
         }
 
         // rotate
-        if (Input != Vector3.zero) {
+        bool strafeKeyDown = UnityEngine.Input.GetKey("joystick button 6");
+        if (Input != Vector3.zero || strafeKeyDown) {
             float targetRotation = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
+
+            if (strafeKeyDown)
+                targetRotation = Mathf.Atan2(Camera.transform.forward.x, Camera.transform.forward.z) * Mathf.Rad2Deg;
+
             CurrentRotation = Mathf.SmoothDampAngle(CurrentRotation, targetRotation, ref TurnSmoothVelocity, TurnSmoothTime);
             transform.eulerAngles = Vector3.up * CurrentRotation;
         }
-
 
         // move
         float targetSpeed = (Crouching ? CrouchSpeed : WalkSpeed) * Input.magnitude;
@@ -89,12 +103,13 @@ public class CharController : MonoBehaviour {
         DEBUG_LastWalkDir = DEBUG_WalkDir.magnitude > .1f ? DEBUG_WalkDir : DEBUG_LastWalkDir;
         DEBUG_WalkDir = moveDir;
 #endif
-        // reset pos on fall
         if (transform.position.y < -2) {
             transform.position = LevelStart.position;
             CurrentSpeed = 0;
+            OnDeath();
         }
 
+        // crouching
         int layerMask = ~(1 << LayerMask.NameToLayer("Character"));
         RaycastHit hit;
         bool hasStandingRoom = true;
@@ -159,6 +174,12 @@ public class CharController : MonoBehaviour {
 
         // Apply the push
         body.velocity = pushDir * PushPower;
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Collectable")) {
+            OnCollectableHit(other);
+        }
     }
 
     private Vector4 AttractorDir(Vector3 dir, LineAttractor attractor) {
