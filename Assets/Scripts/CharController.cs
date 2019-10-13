@@ -106,7 +106,8 @@ public class CharController : MonoBehaviour {
         if (transform.position.y < -2) {
             transform.position = LevelStart.position;
             CurrentSpeed = 0;
-            OnDeath();
+            if (OnDeath != null)
+                OnDeath();
         }
 
         // crouching

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8840632292032755482}
   - component: {fileID: 8840632292032755481}
   m_Layer: 0
-  m_Name: Pipe
+  m_Name: BridgeFrame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27,13 +27,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8840632292032755487}
-  m_LocalRotation: {x: 0.50000006, y: -0.50000006, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: -4.55, y: 1.2, z: 1.92}
-  m_LocalScale: {x: 1.771616, y: 0.49149546, z: 1.7716149}
+  m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: -4.55, y: 1.508, z: 1.92}
+  m_LocalScale: {x: 1.7716169, y: 0.4914957, z: 1.7716159}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 90.00001, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 90}
 --- !u!33 &8840632292032755460
 MeshFilter:
   m_ObjectHideFlags: 0
