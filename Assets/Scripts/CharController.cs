@@ -25,9 +25,12 @@ public class CharController : MonoBehaviour {
     [Header("ATTRACTOR")]
     [SerializeField] private List<LineAttractor> LineAttractorsList;
     [SerializeField] private bool UseAttractor = true;
+    [SerializeField] float ResetTresholdY = 0;
 
     public Action OnDeath;
     public Action<Collider> OnCollectableHit;
+    public bool ResetPos;
+    public float JumpIntensity;
 
     private List<Vector3> PositionHistory = new List<Vector3>();
     private List<Vector3> MoveVectorHistory = new List<Vector3>();
@@ -43,6 +46,9 @@ public class CharController : MonoBehaviour {
 
     private bool Crouching;
     private Vector3 CrouchSmoothVeolocity;
+
+
+
 
 #if DEBUG
     private Vector3 DEBUG_WalkDir = Vector3.zero;
@@ -67,6 +73,7 @@ public class CharController : MonoBehaviour {
 
         // move dir
         Vector3 moveDir = InputDirRelToCamera;
+
 
         // apply attractor force
         if (UseAttractor) {
@@ -103,7 +110,7 @@ public class CharController : MonoBehaviour {
         DEBUG_LastWalkDir = DEBUG_WalkDir.magnitude > .1f ? DEBUG_WalkDir : DEBUG_LastWalkDir;
         DEBUG_WalkDir = moveDir;
 #endif
-        if (transform.position.y < -2) {
+        if (transform.position.y < ResetTresholdY) {
             transform.position = LevelStart.position;
             CurrentSpeed = 0;
             if (OnDeath != null)
@@ -119,6 +126,7 @@ public class CharController : MonoBehaviour {
         if (Physics.Raycast(transform.position, Vector3.up, out hit, maxDist, layerMask)) {
             hasStandingRoom = false;
         }
+
 
 #if DEBUG && UNITY_EDITOR
         float rayDist = hasStandingRoom ? maxDist : hit.distance;
@@ -138,6 +146,21 @@ public class CharController : MonoBehaviour {
             Crouching = false;
         }
         transform.localScale = Vector3.SmoothDamp(transform.localScale, targetCrouchScale, ref CrouchSmoothVeolocity, CrouchSmoothTime);
+
+        // reset position
+        bool resetButton = UnityEngine.Input.GetKey("r") ;
+        if (resetButton)
+            {
+                  CurrentSpeed = 0;
+                  transform.position = LevelStart.position;
+            }
+
+        // jump
+        bool jumpButton = UnityEngine.Input.GetKey("space");
+        if (jumpButton)
+            {
+               
+            }        
 
 #if DEBUG && UNITY_EDITOR
         // store debug data
